@@ -1,0 +1,148 @@
+package app;
+
+import util.*;
+import business.*;
+
+
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
+
+
+public class Prefeitura{
+   private static int N = 0;
+   private static int M1 = 0;
+   private static int M2 = 0;
+   
+   private static CDicionario FAIXA1 = new CDicionario();
+   private static CDicionario FAIXA2 = new CDicionario();
+   private static CFila FILA = new CFila();
+   
+   public static void imprimeCompleta(){
+      if(N != 0 && M1 != 0 && M2 != 0){//se for igual a zero não passou parâmetros ainda
+         FAIXA1.showDic("Lista moradores que estão na lista Faixa 1");
+         FAIXA2.showDic("Lista moradores que estão na lista Faixa 2");
+         FILA.mostra("Moradores que estão na fila de espera");
+      }
+      else
+         JOptionPane.showMessageDialog(null, "Ops... Faltou passar os parãmetros vá na opção 7 do menu", "Ops...", JOptionPane.WARNING_MESSAGE);
+   }
+   public static void imprimeCompactada(){
+      
+   }
+   
+   public static void tentarIncluirFaixa1(Morador morador){
+      if(FAIXA1.quantidade() < M1)
+         FAIXA1.adiciona( morador.getCpf() , morador);
+      else{
+         tentarIncluirFaixa2(morador);//se a faixa 1 estiver cheia este morador pode participar da faixa 2 pois sua renda é menor que 1 salário mínimo e a faixa 2 é até 3 salários mínimos
+      }
+   }
+   public static void tentarIncluirFaixa2(Morador morador){
+      if(FAIXA2.quantidade() < M2)
+         FAIXA2.adiciona(morador.getCpf(), morador);
+      else{
+         if(FILA.quantidade() < N)
+            FILA.enfileira(morador);
+         else
+            JOptionPane.showMessageDialog(null, "Fila cheia", "Fila cheia", JOptionPane.WARNING_MESSAGE);
+      }
+   }
+   
+   public static void cadastrar(){
+      if(N != 0 && M1 != 0 && M2 != 0){//se entrou com parâmetros
+         if(FAIXA1.quantidade() == M1 && FAIXA2.quantidade() == M2 && FILA.quantidade() == N)//se todas as listas cheias
+            JOptionPane.showMessageDialog(null, "Lista Cheia", "Lista Cheia", JOptionPane.WARNING_MESSAGE);
+         else{
+            Morador morador = new Morador( new Cpf(Leitor.readCpf()) , Leitor.readNome(), Leitor.readQtdeDependentes(), Leitor.readRendaFamiliar(), new Telefone(Leitor.readDdd(), Leitor.readNumeroTel()), Leitor.readEndereco());
+            if(morador.getRendaFamiliar() < 1045 * 3.0F){
+               if(morador.getRendaFamiliar() < 1045.0F)
+                  tentarIncluirFaixa1(morador);
+               else
+                  tentarIncluirFaixa2(morador);
+            }
+            else
+               JOptionPane.showMessageDialog(null, "Salário maior que o teto do sorteio", "Salário maior que o teto do sorteio", JOptionPane.WARNING_MESSAGE);
+         }
+      }//não entrou com parâmetros
+      else
+         JOptionPane.showMessageDialog(null, "Ops... Faltou passar os parãmetros vá na opção 7 do menu", "Ops...", JOptionPane.WARNING_MESSAGE);
+   }
+   public static void parametros(){
+      if(M1 == 0 && M2 == 0 && N == 0){
+         do{
+            M1 = Leitor.readParametro("Faixa 1");
+            if(M1 <= 0)
+               System.out.println(Leitor.ERRO);
+         }while(M1 <= 0);
+         do{
+            M2 = Leitor.readParametro("Faixa 2");
+            if(M2 <= 0)
+               System.out.println(Leitor.ERRO);
+         }while(M2 <= 0);
+         do{
+            N = Leitor.readParametro("Fila de espera");
+            if(N <= 0)
+               System.out.println(Leitor.ERRO);
+         }while(N <= 0);
+      }
+   }
+
+   public static void main(String[] args){
+      String entrada;
+      int op;
+      int aux;
+      do{
+         entrada = JOptionPane.showInputDialog( "======================= Menu ========================\n" +
+                                                "1 - Cadastrar morador\n"+
+                                                "2 - Imprimir lista de moradores cadastrados\n"+
+                                                "     2.1 - Listagem simples (apenas CPF e nome do morador)\n"+
+                                                "     2.2 - Listagem completa (todos os dados)\n"+
+                                                "3 - Imprimir fila de espera\n"+
+                                                "4 - Pesquisar morador\n" +
+                                                "5 - Desistência/Exclusão\n"+
+                                                "6 - Sorteio\n"+
+                                                "7 - Parâmetros\n"+
+                                                "8 - Sair\n\n"+
+                                                "======================================================\n"+
+                                                "Digite uma opção válida => " );
+         if(entrada != null && !("".equals(entrada)))
+            op = Integer.parseInt( entrada );
+         else
+            op = 0;
+         switch(op){
+            case 1:
+               cadastrar();
+               break;
+            case 2:
+               entrada = JOptionPane.showInputDialog( "Digite 1 para mostrar a lista compactada e 2 para completa => ");
+               if(entrada != null && !("".equals(entrada))){
+                  aux = Integer.parseInt(entrada);
+                  if(aux == 1)
+                     imprimeCompactada();
+                  if(aux == 2)
+                     imprimeCompleta();
+                  if(aux != 1 && aux != 2)
+                     JOptionPane.showMessageDialog(null, "Opção inválida", "Ops parece que este valor não é válido!!!", JOptionPane.WARNING_MESSAGE);
+               }
+            case 7:
+               parametros();
+               break;
+            case 8:
+               JOptionPane.showMessageDialog(null, "Saindo", "Saindo...", JOptionPane.INFORMATION_MESSAGE);
+               break;
+            default:
+               JOptionPane.showMessageDialog(null, "Opção inválida", "Opção inválida...", JOptionPane.INFORMATION_MESSAGE);
+               
+         }
+      }while(op != 8);
+      /*
+      Morador morador = new Morador( new Cpf(Leitor.readCpf()) , Leitor.readNome(), Leitor.readQtdeDependentes(), Leitor.readRendaFamiliar(), new Telefone(Leitor.readDdd(), Leitor.readNumeroTel()), Leitor.readEndereco());
+      JTextArea textArea = new JTextArea(40, 70);
+      textArea.setText(morador + "\n");
+      textArea.setEditable(false);
+      JScrollPane scrollPane = new JScrollPane(textArea);
+      JOptionPane.showMessageDialog(null, scrollPane);
+      */
+   }
+}
